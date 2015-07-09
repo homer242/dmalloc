@@ -25,6 +25,7 @@
 #define __DMALLOC_TAB_LOC_H__
 
 #include "conf.h"
+#include "settings.h"
 
 /*
  * Maximum number of splits.  This should mean that these routines can

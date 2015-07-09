@@ -25,6 +25,8 @@
 #define __CHUNK_LOC_H__
 
 #include "conf.h"				/* up here for _INCLUDE */
+#include "settings.h"
+
 #include "dmalloc_loc.h"			/* for DMALLOC_SIZE */
 
 /* for thread-id types -- see conf.h */

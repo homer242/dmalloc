@@ -28,16 +28,17 @@
 
 #include <ctype.h>
 
+#define DMALLOC_DISABLE
+
+#include "conf.h"
+#include "settings.h"
+
 #if HAVE_STRING_H
 # include <string.h>
 #endif
 #if HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
-
-#define DMALLOC_DISABLE
-
-#include "conf.h"
 
 #if LOG_PNT_TIMEVAL
 #ifdef TIMEVAL_INCLUDE

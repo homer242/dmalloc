@@ -48,6 +48,7 @@
  */
 #ifndef __CONF_H__
 #include "conf.h"	/* for USE_RETURN_MACROS and RETURN_MACROS_WORK */
+#include "settings.h"
 #endif
 
 #if USE_RETURN_MACROS && RETURN_MACROS_WORK

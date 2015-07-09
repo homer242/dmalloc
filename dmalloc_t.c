@@ -26,6 +26,9 @@
  * should be script based.
  */
 
+#include "conf.h"
+#include "settings.h"
+
 #include <stdio.h>				/* for stdin */
 
 #if HAVE_STDLIB_H
@@ -38,7 +41,6 @@
 # include <unistd.h>
 #endif
 
-#include "conf.h"
 #include "compat.h"				/* for loc_snprintf */
 
 #if HAVE_TIME

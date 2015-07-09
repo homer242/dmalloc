@@ -20,12 +20,15 @@
 #
 # $Id: configure.ac,v 1.37 2007/05/14 17:23:37 gray Exp $
 #
-AC_REVISION($Revision: 1.37 $)
-AC_INIT(dmalloc, 6.0.1, [https://github.com/homer242/dmalloc])
+AC_REVISION($Revision: 1.38 $)
+AC_INIT(dmalloc, 5.5.2, [https://github.com/homer242/dmalloc])
 AC_CONFIG_SRCDIR(dmalloc.c)
 AC_CONFIG_HEADER(conf.h)
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_MSG_NOTICE([configurations for the dmalloc library])
+
+AM_INIT_AUTOMAKE([foreign])
 
 ##############################################################################
 # arguments
@@ -68,11 +71,19 @@ if test "$ac_cv_prog_cc_stdc" = "no" ; then
 	AC_MSG_WARN()
 fi
 AC_PROG_INSTALL
-AC_PROG_RANLIB
+AC_PROG_LIBTOOL
 AC_C_CONST
 
 # we need this for various settings
 AC_HEADER_STDC
+
+AH_TEMPLATE([HAVE_STDARG_H],
+            [check stdarg.h header])
+AH_TEMPLATE([HAVE_SYS_MMAN_H],
+            [check sys/mman.h header])
+AH_TEMPLATE([HAVE_ERRNO_H],
+            [check errno.h header])
+
 AC_CHECK_HEADER([stdarg.h],
 		[AC_DEFINE(HAVE_STDARG_H,1) AC_SUBST([HAVE_STDARG_H],1)],
 		[AC_DEFINE(HAVE_STDARG_H,0) AC_SUBST([HAVE_STDARG_H],0)])
@@ -94,108 +105,6 @@ AC_CHECK_HEADER([sys/types.h],
 AC_CHECK_HEADER([sys/mman.h],
 		[AC_DEFINE(HAVE_SYS_MMAN_H,1) AC_SUBST([HAVE_SYS_MMAN_H],1)],
 		[AC_DEFINE(HAVE_SYS_MMAN_H,0) AC_SUBST([HAVE_SYS_MMAN_H],0)])
-
-###############################################################################
-# shared library handling
-
-#
-# check to see where we should install our shared libraries
-# DONT CACHE in case the change the --prefix
-#
-# This is pretty tricky here and should be handled by autoconf
-# automatically.  I try to see if there is a shlib directory
-# to install by shlibs there.  If not I use the $libdir.  Some
-# of the variables have values of '${exec_prefix}' and the like
-# so the quoting is very important.
-#
-# We first try and find the true directory where we are
-# installing.
-#
-if test "x$exec_prefix" = xNONE; then
-	if test "x$prefix" = xNONE; then
-		shlibprefix="$ac_default_prefix"
-	else
-		shlibprefix="$prefix"
-	fi
-else
-	shlibprefix="$exec_prefix"
-fi
-#
-# Then we see if there is a special shlib directory to use.
-#
-if test -d $shlibprefix/shlib; then
-	shlibdir='${exec_prefix}/shlib'
-else
-	shlibdir="$libdir"
-fi
-AC_SUBST(shlibdir)
-
-# see how the local system builds shared libraries
-AC_MSG_CHECKING([shared library link args])
-AC_COMPILE_IFELSE([ int foo(int val) { return val + 1; } ],[
-	# so now we try to create an archive from the compiled .o file
-	(ar cr conftest.a conftest.o) 2>&5
-	# see which shared-library ld commands work
-	#
-	# Darwin/Mac OS X - Terry Teague
-	# username terry_teague at domain users.sourceforge.net
-	ac_cv_shared_lib_link_objs=no
-	if test `uname` = "Darwin"; then
-          if (ld -dylib -o conftest.so.t -lc conftest.a) 2>&5; then
-            # By convention on some platforms
-            # libLLL.so, libLLL.X.so are symlinks to libLLL.X.Y.Z.so
-            # where X.Y.Z is version # (major.minor.increment) of the library
-	    # (API)
-            # For the moment set the Mac OS X dylib compatibility version # to
-	    # 1.0 and don't create any symlinks or versioned library names.
-            # Perhaps this could be the version of the dmalloc library
-	    # (e.g. 5.4.0)
-            ac_cv_shared_link_args='$(CXX) -dynamiclib -install_name $@ -compatibility_version 1 -current_version 1 -o $@.t'
-            # linking static archives into a dynamic lib doesn't seem to work
-            # explicitly link the object files
-            ac_cv_shared_lib_link_objs=yes
-          else
-            # oh well, toss an error
-            ac_cv_shared_link_args='# Could not configure shlib linking'
-            enable_shlib=no
-          fi
-       elif (ld -shared --whole-archive -soname conftest.so -o conftest.so.t conftest.a) 2>&5; then
-		ac_cv_shared_link_args='ld -shared --whole-archive -soname $@ -o $@.t'
-	elif (ld -shared -o conftest.so.t -all -soname conftest.so.t -none -lc -all conftest.a) 2>&5; then
-		ac_cv_shared_link_args='ld -shared -o $@.t -all -soname $@ -none -lc -all'
-	elif (ld -G -o conftest.so.t conftest.a) 2>&5; then
-		ac_cv_shared_link_args='ld -G -o $@.t'
-	else
-		# oh well, toss an error
-		ac_cv_shared_link_args='# Could not configure shlib linking'
-		enable_shlib=no
-	fi
-],[
-	# oh well, toss an error
-	ac_cv_shared_link_args='# Could not configure shlib linking'
-	enable_shlib=no
-])
-shlinkargs="$ac_cv_shared_link_args"
-AC_SUBST(shlinkargs)
-if test "$ac_cv_shared_lib_link_objs" = "yes"; then
-       AC_MSG_RESULT([$ac_cv_shared_link_args objectfiles...])
-else
-       AC_MSG_RESULT([$ac_cv_shared_link_args])
-fi
-
-###############################################################################
-
-AC_MSG_CHECKING([shared library extension])
-if test `uname` = "Darwin"; then
-	# Darwin/Mac OS X - Terry Teague
-	# username terry_teague at domain users.sourceforge.net
-	ac_cv_shared_lib_suffix=dylib
-else
-	ac_cv_shared_lib_suffix=so
-fi
-shlibext="$ac_cv_shared_lib_suffix"
-AC_MSG_RESULT([$ac_cv_shared_lib_suffix])
-AC_SUBST(shlibext)
 
 ###############################################################################
 
@@ -237,6 +146,9 @@ fi
 #
 # check for size_t
 #
+AH_TEMPLATE([DMALLOC_SIZE],
+            [size_t existence])
+
 AC_TYPE_SIZE_T
 if test "$ac_cv_type_size_t" = "yes"; then
 	AC_DEFINE(DMALLOC_SIZE,size_t)
@@ -247,6 +159,9 @@ fi
 #
 # check for unsigned-ness
 #
+AH_TEMPLATE([DMALLOC_SIZE_UNSIGNED],
+            [size_t unsigned])
+
 AC_MSG_CHECKING([dmalloc size unsigned])
 AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #if HAVE_SYS_TYPES_H
@@ -286,6 +201,11 @@ AC_MSG_RESULT([$ac_cv_strdup_macro])
 #
 # check for existance of mprotect and associated defines
 #
+AH_TEMPLATE([PROTECT_ALLOWED],
+            [Set to 1 if the mprotect function was found and the PROT_NONE,
+             PROT_READ, and PROT_WRITE defines were found in sys/mman.h.  This
+             is so that we can restrict access to certain blocks of memory.])
+
 AC_CHECK_FUNCS(mprotect)
 AC_MSG_CHECKING([mprotect works])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
@@ -314,6 +234,16 @@ if test x$ac_cv_func_mmap != xyes && x$ac_cv_func_sbrk != xyes; then
 	AC_MSG_WARN(no mmap nor sbrk function.  See INTERNAL_MEMORY_SPACE in settings.dist.)
 	AC_MSG_WARN()
 fi
+
+AH_TEMPLATE([USE_MMAP],
+            [(void *)mmap(...) is another heap-memory allocation routine that
+             systems employ.  On newer systems it is often preferable over sbrk.
+             It allocates a block of memory in the virtual-memory system.  The
+             USE_MMAP define is set if the standard mmap call works.
+
+             NOTE: If configure generates a 0 for this and HAVE_SBRK on your
+             system, you should see the INTERNAL_MEMORY_SPACE setting in the
+             settings.h file which is created from the settings.dist file.mmaps usage])
 
 AC_MSG_CHECKING([mmap usage])
 AC_RUN_IFELSE([AC_LANG_SOURCE([[
@@ -349,23 +279,33 @@ AC_MSG_RESULT([$ac_cv_use_mmap])
 #
 # check for basic block size
 #
+AH_TEMPLATE([BASIC_BLOCK],
+            [This is the basic block size in bits.  If possible, the configure
+             script will set this to be the value returned by the getpagesize()
+             function.  If not then some sort of best guess will be necessary.
+             15 (meaning basic block size of 32k) will probably be good.
+             
+             NOTE: some sbrk functions round to the correct page-size.  No
+             problems aside from a possible small increase in the administration
+             overhead should happen if this value is too high.])
+
 AC_CHECK_FUNCS(getpagesize)
 AC_MSG_CHECKING([basic-block size])
 ac_cv_page_size=0
 if test $ac_cv_page_size = 0; then
-   AC_RUN_IFELSE([main() { if (getpagesize()<=2048) exit(0); else exit(1); }],
+   AC_RUN_IFELSE([AC_LANG_SOURCE([main() { if (getpagesize()<=2048) exit(0); else exit(1); }])],
 	[ ac_cv_page_size=11 ] )
 fi
 if test $ac_cv_page_size = 0; then
-   AC_RUN_IFELSE([main() { if (getpagesize()<=4096) exit(0); else exit(1); }],
+   AC_RUN_IFELSE([AC_LANG_SOURCE([main() { if (getpagesize()<=4096) exit(0); else exit(1); }])],
 	[ ac_cv_page_size=12 ] )
 fi
 if test $ac_cv_page_size = 0; then
-   AC_RUN_IFELSE([main() { if (getpagesize()<=8192) exit(0); else exit(1); }],
+   AC_RUN_IFELSE([AC_LANG_SOURCE([main() { if (getpagesize()<=8192) exit(0); else exit(1); }])],
 	[ ac_cv_page_size=13 ] )
 fi
 if test $ac_cv_page_size = 0; then
-   AC_RUN_IFELSE([main() { if (getpagesize()<=16384) exit(0); else exit(1); }],
+   AC_RUN_IFELSE([AC_LANG_SOURCE([main() { if (getpagesize()<=16384) exit(0); else exit(1); }])],
 	[ ac_cv_page_size=14 ] )
 fi
 if test $ac_cv_page_size = 0; then
@@ -377,6 +317,22 @@ AC_MSG_RESULT([$ac_cv_page_size])
 #
 # data-alignment size...
 #
+AH_TEMPLATE([ALLOCATION_ALIGNMENT],
+            [The alignment value of all allocations in number of bytes for
+             loading admin information before an allocation.  If possible, the
+             configure script will set this to be the value returned by
+             sizeof(long) which in most systems is the register width.
+             
+             NOTE: the value will never be auto-configured to be less than 8
+             because some system (like sparc for instance) report the sizeof(long)
+             == 4 while the register size is 8 bytes.  Certain memory needs to be of
+             the same base as the register size (stack frames, code, etc.).  Any
+             ideas how I can determine the register size in a better (and portable)
+             fashion?
+             
+             NOTE: larger the number the more memory may be wasted by certain
+             debugging settings like fence-post checking.])
+
 AC_CHECK_SIZEOF(long)
 AC_MSG_CHECKING([data-alignment size])
 if test $ac_cv_sizeof_long = 4; then
@@ -391,9 +347,16 @@ AC_MSG_RESULT([$ac_cv_data_align])
 #
 # check the safety of the abort function
 #
+AH_TEMPLATE([ABORT_OKAY],
+            [This checks to see if the abort routine does extensive cleaning up
+             before halting a program.  If so then it may call malloc functions
+             making the library go recursive.  If abort is set to not okay then
+             you should tune the KILL_PROCESS and SIGNAL_INCLUDE options in
+             settings.h if you want the library to be able to dump core.])
+
 AC_CHECK_FUNCS(abort)
 AC_MSG_CHECKING([abort safe])
-AC_RUN_IFELSE([[
+AC_RUN_IFELSE([AC_LANG_SOURCE([
 static int main_b = 0;
 static char heap_mem[102400], *heap_p = heap_mem;
 free () { if (main_b) _exit(0); }
@@ -424,7 +387,7 @@ char *realloc (char *old_pnt, int new_size) {
   return start;
 }
 main() { main_b = 1; abort(); _exit(1); }
-]],
+])],
 # NOTE: this is reversed because abort core dumps and doesn't exit with
 # 0 which means that it should fail
 [ AC_DEFINE(ABORT_OKAY, 0) AC_MSG_RESULT([no]) ],
@@ -432,6 +395,15 @@ main() { main_b = 1; abort(); _exit(1); }
 [ AC_DEFINE(ABORT_OKAY, 1) AC_MSG_RESULT([yes]) ],
 [ AC_DEFINE(ABORT_OKAY, 0) AC_MSG_RESULT([no]) ]
 )
+
+# signals
+AH_TEMPLATE([HAVE_SIGNAL_H],
+            [check signal.h header])
+AH_TEMPLATE([SIGNAL_OKAY],
+            [This checks to see if we can include signal.h and get SIGHUP,
+             SIGINT, and SIGTERM for the catch-signals token.  With this token,
+             you can have the library do an automatic shutdown if we see the
+             above signals.])
 
 AC_TYPE_SIGNAL
 AC_MSG_CHECKING([signal works])
@@ -454,9 +426,18 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #
 # check the safety of the getenv function
 #
+AH_TEMPLATE([GETENV_SAFE],
+            [Under the Cygwin environment, when malloc calls getenv, it core
+             dumps.  This is because Cygwin, as far as I know, is loading the
+             shared libraries for the various system functions and goes
+             recursive with a call to getenv.  Ugh.
+             
+             So we have to delay the getenv call.  This sets when we can do the
+             getenv call so the environmental processing is delayed.])
+
 AC_CHECK_FUNCS(getenv)
 AC_MSG_CHECKING([getenv safe])
-AC_RUN_IFELSE([[
+AC_RUN_IFELSE([AC_LANG_SOURCE([
 static char heap_mem[102400], *heap_p = heap_mem;
 free (char *pnt) {
 }
@@ -487,7 +468,7 @@ char *realloc (char *old_pnt, int new_size) {
   return start;
 }
 main() { malloc(10); _exit(0); }
-]],
+])],
 [ AC_DEFINE(GETENV_SAFE, 1)
   AC_MSG_RESULT([yes])
   getenv_safe=yes ],
@@ -501,6 +482,16 @@ main() { malloc(10); _exit(0); }
 )
 
 # now check to see if we can replace getenv with GetEnvironmentVariableA
+AH_TEMPLATE([HAVE_SYS_CYGWIN_H],
+            [check sys/cygwin.h header])
+AH_TEMPLATE([HAVE_W32API_WINDEF_H],
+            [check w32api/windef.h header])
+AH_TEMPLATE([HAVE_W32API_WINBASE_H],
+            [check w32api/winbase.h header])
+AH_TEMPLATE([HAVE_GETENVIRONMENTVARIABLEA],
+            [See if we have the GetEnvironmentVariableA Cygwin function.  This
+             is used as a getenv replacement.])
+
 AC_CHECK_HEADER([sys/cygwin.h],
 		[AC_DEFINE(HAVE_SYS_CYGWIN_H,1) AC_SUBST([HAVE_SYS_CYGWIN_H],1)],
 		[AC_DEFINE(HAVE_SYS_CYGWIN_H,0) AC_SUBST([HAVE_SYS_CYGWIN_H],0)])
@@ -515,7 +506,7 @@ AC_CHECK_HEADER([w32api/winbase.h],
 # include <w32api/windef.h>
 #endif]])
 AC_MSG_CHECKING([for GetEnvironmentVariableA])
-AC_RUN_IFELSE([[
+AC_RUN_IFELSE([AC_LANG_SOURCE([
 #if HAVE_SYS_CYGWIN_H
 # include <sys/cygwin.h>
 #endif
@@ -532,7 +523,7 @@ main() {
   char env_buf[256];
   GetEnvironmentVariableA("PATH", env_buf, sizeof(env_buf));
 }
-]],
+])],
 [ AC_DEFINE(HAVE_GETENVIRONMENTVARIABLEA, 1)
   AC_MSG_RESULT([yes])
   have_getenvironmentvariablea=yes ],
@@ -558,13 +549,19 @@ fi
 #
 # check for constructor attribute support
 #
+AH_TEMPLATE([CONSTRUCTOR_WORKS],
+            [See whether support exists for the constructor attribute which
+             allows the library to run code before main() is called.  I know
+             that later versions of gcc have support for this and maybe other
+             compilers do as well.])
+
 AC_MSG_CHECKING([constructor attribute])
-AC_RUN_IFELSE([[
+AC_RUN_IFELSE([AC_LANG_SOURCE([
 /* if we call the loc_con constructor then exit with error code 0 */
 static void loc_con() __attribute__((constructor));
 static void loc_con() { exit(0); }
 int main() { exit(1); }
-]],
+])],
 [ AC_DEFINE(CONSTRUCTOR_WORKS, 1) AC_MSG_RESULT([yes]) ],
 [ AC_DEFINE(CONSTRUCTOR_WORKS, 0) AC_MSG_RESULT([no]) ],
 [ AC_DEFINE(CONSTRUCTOR_WORKS, 1) AC_MSG_RESULT([yes]) ]
@@ -573,13 +570,19 @@ int main() { exit(1); }
 #
 # check for destructor attribute support
 #
+AH_TEMPLATE([DESTRUCTOR_WORKS],
+            [See whether support exists for the destructor attribute which
+             allows the library to run code after main() is exited.  I know
+             that later versions of gcc have support for this and maybe other
+             compilers do as well.])
+
 AC_MSG_CHECKING([destructor attribute])
-AC_RUN_IFELSE([[
+AC_RUN_IFELSE([AC_LANG_SOURCE([
 /* if we call the loc_decon destructor then exit with error code 0 */
 static void loc_decon() __attribute__((destructor));
 static void loc_decon() { exit(0); }
 int main() { return 1; }
-]],
+])],
 [ AC_DEFINE(DESTRUCTOR_WORKS, 1)
   AC_MSG_RESULT([yes])
   destructor_works=yes ],
@@ -596,8 +599,14 @@ int main() { return 1; }
 #
 # check if the return.h macros work
 #
+AH_TEMPLATE([RETURN_MACROS_WORK],
+            [This checks to see if we can include return.h and use the assembly
+             macros there to call the callers address for logging.  If you do
+             not want this behavior, then set the USE_RETURN_MACROS to 0 in the
+             settings.h file.])
+
 AC_MSG_CHECKING([return.h macros work])
-AC_RUN_IFELSE([
+AC_RUN_IFELSE([AC_LANG_SOURCE([
 
 #define __CONF_H__
 #define USE_RETURN_MACROS 1
@@ -616,7 +625,7 @@ main()
   foo();
   exit(0);
 }
-],
+])],
 [ AC_DEFINE(RETURN_MACROS_WORK, 1) AC_MSG_RESULT([yes]) ],
 [ AC_DEFINE(RETURN_MACROS_WORK, 0) AC_MSG_RESULT([no]) ],
 [ AC_DEFINE(RETURN_MACROS_WORK, 0) AC_MSG_RESULT([no]) ]
@@ -627,16 +636,34 @@ main()
 #
 # check to see if ident workds
 #
+AH_TEMPLATE([IDENT_WORKS],
+            [Why can't the compiler folks agree about this.  I really hate Unix
+             sometimes for its blatant disregard for anything approaching a
+             standard.])
+
 AC_MSG_CHECKING([if ident works])
-AC_COMPILE_IFELSE([
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #ident "$Id: configure.ac,v 1.37 2007/05/14 17:23:37 gray Exp $"
 static void foo (void) { }
-],
+])],
 [AC_DEFINE(IDENT_WORKS, 1) AC_MSG_RESULT([yes])],
 [AC_DEFINE(IDENT_WORKS, 0) AC_MSG_RESULT([no])]
 )
 
 ##############################################################################
+AH_TEMPLATE([HAVE_PTHREADS_H],
+            [Which pthread include file to use.])
+AH_TEMPLATE([HAVE_PTHREAD_H],
+            [Which pthread include file to use.])
+AH_TEMPLATE([THREAD_MUTEX_T],
+            [What is the pthread mutex type?  Usually (always?) it is
+             pthread_mutex_t.])
+AH_TEMPLATE([THREAD_LOCK_INIT_VAL],
+            [On some systems, you initialize mutex variables with NULL.  Others
+             require various stupid non-portable incantations.  The OSF 3.2 guys
+             should be ashamed of themselves.  This only is used if the
+             LOCK_THREADS setting is enabled in the settings.h.])
+
 AC_MSG_NOTICE([pthread particulars])
 
 XX_OLD_LIBS=$LIBS
@@ -732,68 +759,65 @@ AC_CHECK_FUNCS(strcasecmp strcat strchr strcmp strcpy strcspn strlen)
 AC_CHECK_FUNCS(strncasecmp strncat strncmp strncpy)
 AC_CHECK_FUNCS(strpbrk strrchr strspn strstr strtok)
 
-AC_CONFIG_FILES(Makefile)
+# outputs
+AC_CONFIG_FILES([
+dmalloc.pc
+Makefile
+])
 
-AC_CONFIG_COMMANDS([dmalloc.h.2],
+AC_CONFIG_COMMANDS([dmalloc_defs.h],
 [
-newfile=dmalloc.h.2
-rm -f $newfile.t
-echo '/* this is dmalloc.h.2 */' > $newfile.t
-echo '/* produced by configure, inserted into dmalloc.h */' >> $newfile.t
-echo '' >> $newfile.t
+echo '#ifndef __DMALLOC_CFG_H__' > dmalloc_defs.h
+echo '#define __DMALLOC_CFG_H__' > dmalloc_defs.h
+echo '' >> dmalloc_defs.h
+
+echo '/* produced by configure */' >> dmalloc_defs.h
+echo '' >> dmalloc_defs.h
 
 if test "$ac_cv_c_const" = "yes"; then
-	echo '/* const is available */' >> $newfile.t
+	echo '/* const is available */' >> dmalloc_defs.h
 else
-        echo '/* const is not available */' >> $newfile.t
-	echo '#ifndef const' >> $newfile.t
-	echo '#define const' >> $newfile.t
-	echo '#endif' >> $newfile.t
+        echo '/* const is not available */' >> dmalloc_defs.h
+	echo '#ifndef const' >> dmalloc_defs.h
+	echo '#define const' >> dmalloc_defs.h
+	echo '#endif' >> dmalloc_defs.h
 fi
 
 if test "$ac_cv_strdup_macro" = "yes"; then
-	echo '/* strdup is a macro */' >> $newfile.t
-	echo '#define DMALLOC_STRDUP_MACRO' >> $newfile.t
+	echo '/* strdup is a macro */' >> dmalloc_defs.h
+	echo '#define DMALLOC_STRDUP_MACRO' >> dmalloc_defs.h
 else
-	echo '/* strdup is not a macro */' >> $newfile.t
-	echo '#undef DMALLOC_STRDUP_MACRO' >> $newfile.t
+	echo '/* strdup is not a macro */' >> dmalloc_defs.h
+	echo '#undef DMALLOC_STRDUP_MACRO' >> dmalloc_defs.h
 fi
-echo '' >> $newfile.t
+echo '' >> dmalloc_defs.h
 
-echo '/*' >> $newfile.t
-echo ' * the definition of DMALLOC_SIZE' >> $newfile.t
-echo ' *' >> $newfile.t
-echo ' * NOTE: some architectures have malloc, realloc, etc.' >> $newfile.t
-echo ' * using unsigned instead of unsigned long.  You may' >> $newfile.t
-echo ' * have to edit this by hand to fix any compilation' >> $newfile.t
-echo ' * warnings or errors.' >> $newfile.t
-echo ' */' >> $newfile.t
+echo '/*' >> dmalloc_defs.h
+echo ' * the definition of DMALLOC_SIZE' >> dmalloc_defs.h
+echo ' *' >> dmalloc_defs.h
+echo ' * NOTE: some architectures have malloc, realloc, etc.' >> dmalloc_defs.h
+echo ' * using unsigned instead of unsigned long.  You may' >> dmalloc_defs.h
+echo ' * have to edit this by hand to fix any compilation' >> dmalloc_defs.h
+echo ' * warnings or errors.' >> dmalloc_defs.h
+echo ' */' >> dmalloc_defs.h
 if test "$ac_cv_type_size_t" = "yes"; then
-	echo "#include <sys/types.h>" >> $newfile.t
-	echo "#define DMALLOC_SIZE size_t" >> $newfile.t
+	echo "#include <sys/types.h>" >> dmalloc_defs.h
+	echo "#define DMALLOC_SIZE size_t" >> dmalloc_defs.h
 else
-	echo "/* no include file needed */" >> $newfile.t
-	echo "#define DMALLOC_SIZE unsigned long" >> $newfile.t
+	echo "/* no include file needed */" >> dmalloc_defs.h
+	echo "#define DMALLOC_SIZE unsigned long" >> dmalloc_defs.h
 fi
-echo '' >> $newfile.t
-echo '/*' >> $newfile.t
-echo ' * We use stdarg.h for the dmalloc_message and' >> $newfile.t
-echo ' * dmalloc_vmessage functions.' >> $newfile.t
-echo ' */' >> $newfile.t
+echo '' >> dmalloc_defs.h
+echo '/*' >> dmalloc_defs.h
+echo ' * We use stdarg.h for the dmalloc_message and' >> dmalloc_defs.h
+echo ' * dmalloc_vmessage functions.' >> dmalloc_defs.h
+echo ' */' >> dmalloc_defs.h
 if test "$ac_cv_header_stdarg_h" = "yes"; then
-	echo "#include <stdarg.h>" >> $newfile.t
-	echo "#define DMALLOC_STDARG 1" >> $newfile.t
+	echo "#include <stdarg.h>" >> dmalloc_defs.h
+	echo "#define DMALLOC_STDARG 1" >> dmalloc_defs.h
 else
-	echo "/* no stdarg.h available */" >> $newfile.t
-	echo "#define DMALLOC_STDARG 0" >> $newfile.t
-fi
-echo '' >> $newfile.t
-if cmp -s $newfile $newfile.t 2>/dev/null; then
-	AC_MSG_NOTICE([$newfile is unchanged])
-	rm -f $newfile.t
-else
-	rm -f $newfile
-	mv $newfile.t $newfile
+	echo "/* no stdarg.h available */" >> dmalloc_defs.h
+	echo "#define DMALLOC_STDARG 0" >> dmalloc_defs.h
 fi
 ],
 [
@@ -824,17 +848,5 @@ else
 	mv $newfile.t $newfile
 fi
 ])
-AC_OUTPUT
 
-AC_MSG_NOTICE([])
-AC_MSG_NOTICE([Please check-out Makefile and conf.h to make sure that])
-AC_MSG_NOTICE([sane configuration values were a result.])
-AC_MSG_NOTICE([])
-AC_MSG_NOTICE([You may want to change values in settings.h before])
-AC_MSG_NOTICE([running 'make'.])
-AC_MSG_NOTICE([])
-AC_MSG_NOTICE([To run the basic library tests, you can execute:])
-AC_MSG_NOTICE([  make light])
-AC_MSG_NOTICE([or])
-AC_MSG_NOTICE([  make heavy])
-AC_MSG_NOTICE([])
+AC_OUTPUT

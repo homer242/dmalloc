@@ -26,6 +26,11 @@
  * heap as well as reporting the current position of the heap.
  */
 
+#define DMALLOC_DISABLE
+
+#include "conf.h"
+#include "settings.h"
+
 #if HAVE_UNISTD_H
 # include <unistd.h>				/* for write */
 #endif
@@ -36,9 +41,6 @@
 #  include <sys/mman.h>				/* for mmap stuff */
 #endif
 
-#define DMALLOC_DISABLE
-
-#include "conf.h"
 #include "dmalloc.h"
 
 #include "chunk.h"

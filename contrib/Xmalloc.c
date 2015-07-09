@@ -11,6 +11,7 @@
 #define DMALLOC_DISABLE
 
 #include "conf.h"
+#include "settings.h"
 #include "dmalloc.h"
 #include "dmalloc_loc.h"
 #include "dmalloc_lp.h"

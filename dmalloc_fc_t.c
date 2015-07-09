@@ -23,6 +23,11 @@
 
 #include <stdio.h>				/* for stdin */
 
+#define DMALLOC_FUNC_CHECK
+
+#include "conf.h"
+#include "settings.h"
+
 #if HAVE_STDLIB_H
 # include <stdlib.h>				/* for exit... */
 #endif
@@ -32,10 +37,6 @@
 #if HAVE_UNISTD_H
 # include <unistd.h>				/* for getpid */
 #endif
-
-#define DMALLOC_FUNC_CHECK
-
-#include "conf.h"
 
 #if HAVE_TIME
 # ifdef TIME_INCLUDE

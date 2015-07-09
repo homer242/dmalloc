@@ -19,6 +19,9 @@
  * The author may be contacted via http://dmalloc.com/
  */
 
+#include "conf.h"
+#include "settings.h"
+
 #include <ctype.h>
 #include <stdio.h>
 
@@ -28,8 +31,6 @@
 #if HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
-
-#include "conf.h"
 
 #include "dmalloc_argv.h"
 #include "dmalloc_argv_loc.h"

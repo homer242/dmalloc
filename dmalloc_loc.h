@@ -25,6 +25,7 @@
 #define __DMALLOC_LOC_H__
 
 #include "conf.h"			/* for HAVE_BCMP and BASIC_BLOCK */
+#include "settings.h"
 
 /*
  * env variable(s)

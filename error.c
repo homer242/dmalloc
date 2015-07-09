@@ -29,6 +29,9 @@
 #include <fcntl.h>				/* for O_WRONLY, etc. */
 #include <stdio.h>
 
+#include "conf.h"				/* up here for _INCLUDE */
+#include "settings.h"
+
 #if HAVE_STDARG_H
 # include <stdarg.h>				/* for message vsprintf */
 #endif
@@ -38,8 +41,6 @@
 #if HAVE_UNISTD_H
 # include <unistd.h>				/* for write */
 #endif
-
-#include "conf.h"				/* up here for _INCLUDE */
 
 /* for KILL_PROCESS define */
 #if USE_ABORT == 0

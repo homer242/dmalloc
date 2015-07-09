@@ -1,273 +1,351 @@
-/*
- * Automatic configuration flags
- *
- * Copyright 2000 by Gray Watson
- *
- * This file is part of the dmalloc package.
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose and without fee is hereby granted, provided
- * that the above copyright notice and this permission notice appear
- * in all copies, and that the name of Gray Watson not be used in
- * advertising or publicity pertaining to distribution of the document
- * or software without specific, written prior permission.
- * 
- * Gray Watson makes no representations about the suitability of the
- * software described herein for any purpose.  It is provided "as is"
- * without express or implied warranty.
- *
- * The author may be contacted via http://dmalloc.com/
- *
- * $Id: conf.h.in,v 1.99 2005/12/21 13:40:27 gray Exp $
- */
+/* conf.h.in.  Generated from configure.ac by autoheader.  */
 
-#ifndef __CONF_H__
-#define __CONF_H__
+/* This checks to see if the abort routine does extensive cleaning up before
+   halting a program. If so then it may call malloc functions making the
+   library go recursive. If abort is set to not okay then you should tune the
+   KILL_PROCESS and SIGNAL_INCLUDE options in settings.h if you want the
+   library to be able to dump core. */
+#undef ABORT_OKAY
 
-/* please see settings.h for manual configuration options */
+/* The alignment value of all allocations in number of bytes for loading admin
+   information before an allocation. If possible, the configure script will
+   set this to be the value returned by sizeof(long) which in most systems is
+   the register width. NOTE: the value will never be auto-configured to be
+   less than 8 because some system (like sparc for instance) report the
+   sizeof(long) == 4 while the register size is 8 bytes. Certain memory needs
+   to be of the same base as the register size (stack frames, code, etc.). Any
+   ideas how I can determine the register size in a better (and portable)
+   fashion? NOTE: larger the number the more memory may be wasted by certain
+   debugging settings like fence-post checking. */
+#undef ALLOCATION_ALIGNMENT
 
-/*
- * NOTE: The following settings should not need to be tuned by hand.
- */
+/* This is the basic block size in bits. If possible, the configure script
+   will set this to be the value returned by the getpagesize() function. If
+   not then some sort of best guess will be necessary. 15 (meaning basic block
+   size of 32k) will probably be good. NOTE: some sbrk functions round to the
+   correct page-size. No problems aside from a possible small increase in the
+   administration overhead should happen if this value is too high. */
+#undef BASIC_BLOCK
 
-/*
- * Set to 1 if the mprotect function was found and the PROT_NONE,
- * PROT_READ, and PROT_WRITE defines were found in sys/mman.h.  This
- * is so that we can restrict access to certain blocks of memory.
- */
-#define PROTECT_ALLOWED 0
+/* See whether support exists for the constructor attribute which allows the
+   library to run code before main() is called. I know that later versions of
+   gcc have support for this and maybe other compilers do as well. */
+#undef CONSTRUCTOR_WORKS
 
-/*
- * (char *)sbrk(const int incr) is the main heap-memory allocation
- * routine that most systems employ.  This extends the program's data
- * space by INCR number of bytes.
- *
- * NOTE: If configure generates a 0 for this and HAVE_MMAP on your
- * system, you should see the INTERNAL_MEMORY_SPACE setting in the
- * settings.h file which is created from the settings.dist file.
- */
-#define HAVE_SBRK 0
+/* See whether support exists for the destructor attribute which allows the
+   library to run code after main() is exited. I know that later versions of
+   gcc have support for this and maybe other compilers do as well. */
+#undef DESTRUCTOR_WORKS
 
-/*
- * (void *)mmap(...) is another heap-memory allocation routine that
- * systems employ.  On newer systems it is often preferable over sbrk.
- * It allocates a block of memory in the virtual-memory system.  The
- * USE_MMAP define is set if the standard mmap call works.
- *
- * NOTE: If configure generates a 0 for this and HAVE_SBRK on your
- * system, you should see the INTERNAL_MEMORY_SPACE setting in the
- * settings.h file which is created from the settings.dist file.
- */
-#define HAVE_MMAP 0
-#define USE_MMAP 0
+/* size_t existence */
+#undef DMALLOC_SIZE
 
-/*
- * This is the basic block size in bits.  If possible, the configure
- * script will set this to be the value returned by the getpagesize()
- * function.  If not then some sort of best guess will be necessary.
- * 15 (meaning basic block size of 32k) will probably be good.
- *
- * NOTE: some sbrk functions round to the correct page-size.  No
- * problems aside from a possible small increase in the administration
- * overhead should happen if this value is too high.
- */
-#define BASIC_BLOCK 15
+/* size_t unsigned */
+#undef DMALLOC_SIZE_UNSIGNED
 
-/*
- * The alignment value of all allocations in number of bytes for
- * loading admin information before an allocation.  If possible, the
- * configure script will set this to be the value returned by
- * sizeof(long) which in most systems is the register width.
- *
- * NOTE: the value will never be auto-configured to be less than 8
- * because some system (like sparc for instance) report the sizeof(long)
- * == 4 while the register size is 8 bytes.  Certain memory needs to be of
- * the same base as the register size (stack frames, code, etc.).  Any
- * ideas how I can determine the register size in a better (and portable)
- * fashion?
- *
- * NOTE: larger the number the more memory may be wasted by certain
- * debugging settings like fence-post checking.
- */
-#define ALLOCATION_ALIGNMENT 8
+/* Under the Cygwin environment, when malloc calls getenv, it core dumps. This
+   is because Cygwin, as far as I know, is loading the shared libraries for
+   the various system functions and goes recursive with a call to getenv. Ugh.
+   So we have to delay the getenv call. This sets when we can do the getenv
+   call so the environmental processing is delayed. */
+#undef GETENV_SAFE
 
-/*
- * This checks to see if the abort routine does extensive cleaning up
- * before halting a program.  If so then it may call malloc functions
- * making the library go recursive.  If abort is set to not okay then
- * you should tune the KILL_PROCESS and SIGNAL_INCLUDE options in
- * settings.h if you want the library to be able to dump core.
- */
-#define ABORT_OKAY 0
+/* Define to 1 if you have the `abort' function. */
+#undef HAVE_ABORT
 
-/*
- * This checks to see if we can include signal.h and get SIGHUP,
- * SIGINT, and SIGTERM for the catch-signals token.  With this token,
- * you can have the library do an automatic shutdown if we see the
- * above signals.
- */
-#define SIGNAL_OKAY 0
-#define RETSIGTYPE void
+/* Define to 1 if you have the `atexit' function. */
+#undef HAVE_ATEXIT
 
-/*
- * This checks to see if we can include return.h and use the assembly
- * macros there to call the callers address for logging.  If you do
- * not want this behavior, then set the USE_RETURN_MACROS to 0 in the
- * settings.h file.
- */
-#define RETURN_MACROS_WORK 0
+/* Define to 1 if you have the `atoi' function. */
+#undef HAVE_ATOI
 
-/*
- * Why can't the compiler folks agree about this.  I really hate Unix
- * sometimes for its blatant disregard for anything approaching a
- * standard.
- */
-#define IDENT_WORKS 0
+/* Define to 1 if you have the `atol' function. */
+#undef HAVE_ATOL
 
-/*
- * Which pthread include file to use.
- */
-#define HAVE_PTHREAD_H 0
-#define HAVE_PTHREADS_H 0
+/* Define to 1 if you have the `bcmp' function. */
+#undef HAVE_BCMP
 
-/*
- * What pthread functions do we have?
- */
-#define HAVE_PTHREAD_MUTEX_INIT 0
-#define HAVE_PTHREAD_MUTEX_LOCK 0
-#define HAVE_PTHREAD_MUTEX_UNLOCK 0
+/* Define to 1 if you have the `bcopy' function. */
+#undef HAVE_BCOPY
 
-/*
- * What is the pthread mutex type?  Usually (always?) it is
- * pthread_mutex_t.
- */
-#define THREAD_MUTEX_T pthread_mutex_t
+/* Define to 1 if you have the `bzero' function. */
+#undef HAVE_BZERO
 
-/*
- * On some systems, you initialize mutex variables with NULL.  Others
- * require various stupid non-portable incantations.  The OSF 3.2 guys
- * should be ashamed of themselves.  This only is used if the
- * LOCK_THREADS setting is enabled in the settings.h.
- */
-#define THREAD_LOCK_INIT_VAL 0L
+/* Define to 1 if you have the `ctime' function. */
+#undef HAVE_CTIME
 
-/*
- * Under the Cygwin environment, when malloc calls getenv, it core
- * dumps.  This is because Cygwin, as far as I know, is loading the
- * shared libraries for the various system functions and goes
- * recursive with a call to getenv.  Ugh.
- *
- * So we have to delay the getenv call.  This sets when we can do the
- * getenv call so the environmental processing is delayed.
- */
-#define GETENV_SAFE 0
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
 
-/*
- * See whether support exists for the constructor attribute which
- * allows the library to run code before main() is called.  I know
- * that later versions of gcc have support for this and maybe other
- * compilers do as well.
- */
-#define CONSTRUCTOR_WORKS 0
+/* check errno.h header */
+#undef HAVE_ERRNO_H
 
-/*
- * See whether support exists for the destructor attribute which
- * allows the library to run code after main() is exited.  I know
- * that later versions of gcc have support for this and maybe other
- * compilers do as well.
- */
-#define DESTRUCTOR_WORKS 0
+/* Define to 1 if you have the `fork' function. */
+#undef HAVE_FORK
 
-/*
- * See if we have the GetEnvironmentVariableA Cygwin function.  This
- * is used as a getenv replacement.
- */
-#define HAVE_GETENVIRONMENTVARIABLEA 0
+/* Define to 1 if you have the `getenv' function. */
+#undef HAVE_GETENV
 
-/*
- * LIBRARY DEFINES:
- */
+/* See if we have the GetEnvironmentVariableA Cygwin function. This is used as
+   a getenv replacement. */
+#undef HAVE_GETENVIRONMENTVARIABLEA
 
-/*
- * Whether the compiler and OS has standard C headers.
- */
+/* Define to 1 if you have the `gethostname' function. */
+#undef HAVE_GETHOSTNAME
+
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
+/* Define to 1 if you have the `getpid' function. */
+#undef HAVE_GETPID
+
+/* Define to 1 if you have the `getuid' function. */
+#undef HAVE_GETUID
+
+/* Define to 1 if you have the `[index]' function. */
+#undef HAVE_INDEX
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `memalign' function. */
+#undef HAVE_MEMALIGN
+
+/* Define to 1 if you have the `memccpy' function. */
+#undef HAVE_MEMCCPY
+
+/* Define to 1 if you have the `memchr' function. */
+#undef HAVE_MEMCHR
+
+/* Define to 1 if you have the `memcmp' function. */
+#undef HAVE_MEMCMP
+
+/* Define to 1 if you have the `memcpy' function. */
+#undef HAVE_MEMCPY
+
+/* Define to 1 if you have the `memmove' function. */
+#undef HAVE_MEMMOVE
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* Define to 1 if you have the `mmap' function. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have the `mprotect' function. */
+#undef HAVE_MPROTECT
+
+/* Define to 1 if you have the `on_exit' function. */
+#undef HAVE_ON_EXIT
+
+/* Which pthread include file to use. */
+#undef HAVE_PTHREADS_H
+
+/* Which pthread include file to use. */
+#undef HAVE_PTHREAD_H
+
+/* Define to 1 if you have the `pthread_mutex_init' function. */
+#undef HAVE_PTHREAD_MUTEX_INIT
+
+/* Define to 1 if you have the `pthread_mutex_lock' function. */
+#undef HAVE_PTHREAD_MUTEX_LOCK
+
+/* Define to 1 if you have the `pthread_mutex_unlock' function. */
+#undef HAVE_PTHREAD_MUTEX_UNLOCK
+
+/* Define to 1 if you have the `recalloc' function. */
+#undef HAVE_RECALLOC
+
+/* Define to 1 if you have the `rindex' function. */
+#undef HAVE_RINDEX
+
+/* Define to 1 if you have the `sbrk' function. */
+#undef HAVE_SBRK
+
+/* check signal.h header */
+#undef HAVE_SIGNAL_H
+
+/* Define to 1 if you have the `snprintf' function. */
+#undef HAVE_SNPRINTF
+
+/* check stdarg.h header */
+#undef HAVE_STDARG_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strcasecmp' function. */
+#undef HAVE_STRCASECMP
+
+/* Define to 1 if you have the `strcat' function. */
+#undef HAVE_STRCAT
+
+/* Define to 1 if you have the `strchr' function. */
+#undef HAVE_STRCHR
+
+/* Define to 1 if you have the `strcmp' function. */
+#undef HAVE_STRCMP
+
+/* Define to 1 if you have the `strcpy' function. */
+#undef HAVE_STRCPY
+
+/* Define to 1 if you have the `strcspn' function. */
+#undef HAVE_STRCSPN
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strlen' function. */
+#undef HAVE_STRLEN
+
+/* Define to 1 if you have the `strncasecmp' function. */
+#undef HAVE_STRNCASECMP
+
+/* Define to 1 if you have the `strncat' function. */
+#undef HAVE_STRNCAT
+
+/* Define to 1 if you have the `strncmp' function. */
+#undef HAVE_STRNCMP
+
+/* Define to 1 if you have the `strncpy' function. */
+#undef HAVE_STRNCPY
+
+/* Define to 1 if you have the `strpbrk' function. */
+#undef HAVE_STRPBRK
+
+/* Define to 1 if you have the `strrchr' function. */
+#undef HAVE_STRRCHR
+
+/* Define to 1 if you have the `strsep' function. */
+#undef HAVE_STRSEP
+
+/* Define to 1 if you have the `strspn' function. */
+#undef HAVE_STRSPN
+
+/* Define to 1 if you have the `strstr' function. */
+#undef HAVE_STRSTR
+
+/* Define to 1 if you have the `strtok' function. */
+#undef HAVE_STRTOK
+
+/* check sys/cygwin.h header */
+#undef HAVE_SYS_CYGWIN_H
+
+/* check sys/mman.h header */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the `time' function. */
+#undef HAVE_TIME
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `valloc' function. */
+#undef HAVE_VALLOC
+
+/* Define to 1 if you have the `vprintf' function. */
+#undef HAVE_VPRINTF
+
+/* Define to 1 if you have the `vsnprintf' function. */
+#undef HAVE_VSNPRINTF
+
+/* check w32api/winbase.h header */
+#undef HAVE_W32API_WINBASE_H
+
+/* check w32api/windef.h header */
+#undef HAVE_W32API_WINDEF_H
+
+/* Why can't the compiler folks agree about this. I really hate Unix sometimes
+   for its blatant disregard for anything approaching a standard. */
+#undef IDENT_WORKS
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Set to 1 if the mprotect function was found and the PROT_NONE, PROT_READ,
+   and PROT_WRITE defines were found in sys/mman.h. This is so that we can
+   restrict access to certain blocks of memory. */
+#undef PROTECT_ALLOWED
+
+/* Define as the return type of signal handlers (`int' or `void'). */
+#undef RETSIGTYPE
+
+/* This checks to see if we can include return.h and use the assembly macros
+   there to call the callers address for logging. If you do not want this
+   behavior, then set the USE_RETURN_MACROS to 0 in the settings.h file. */
+#undef RETURN_MACROS_WORK
+
+/* This checks to see if we can include signal.h and get SIGHUP, SIGINT, and
+   SIGTERM for the catch-signals token. With this token, you can have the
+   library do an automatic shutdown if we see the above signals. */
+#undef SIGNAL_OKAY
+
+/* The size of `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/*
- * Some systems have functions which can register routines to be
- * called by exit(3) (or when the program returns from main).  This
- * functionality allows the dmalloc_shutdown() routine to be called
- * automatically upon program completion so that the library can log
- * statistics.  Use the AUTO_SHUTDOWN define above to disable this.
- * Please send me mail if this functionality exists on your system but
- * in another name.
- *
- * NOTE: If neither is available, take a look at atexit.c in the
- * contrib directory which may provide this useful functionality for
- * your system.
- */
-#define HAVE_ATEXIT 0
-#define HAVE_ON_EXIT 0
+/* On some systems, you initialize mutex variables with NULL. Others require
+   various stupid non-portable incantations. The OSF 3.2 guys should be
+   ashamed of themselves. This only is used if the LOCK_THREADS setting is
+   enabled in the settings.h. */
+#undef THREAD_LOCK_INIT_VAL
 
-/* Is the DMALLOC_SIZE type unsigned? */
-#define DMALLOC_SIZE_UNSIGNED 0
+/* What is the pthread mutex type? Usually (always?) it is pthread_mutex_t. */
+#undef THREAD_MUTEX_T
 
-/*
- * The dmalloc library provides its own versions of the following
- * functions, or knows how to work around their absence.
- */
-/* bells and whistles */
-#define HAVE_FORK 0
-#define HAVE_GETHOSTNAME 0
-#define HAVE_GETPID 0
-#define HAVE_GETUID 0
-#define HAVE_TIME 0
-#define HAVE_CTIME 0
+/* (void *)mmap(...) is another heap-memory allocation routine that systems
+   employ. On newer systems it is often preferable over sbrk. It allocates a
+   block of memory in the virtual-memory system. The USE_MMAP define is set if
+   the standard mmap call works. NOTE: If configure generates a 0 for this and
+   HAVE_SBRK on your system, you should see the INTERNAL_MEMORY_SPACE setting
+   in the settings.h file which is created from the settings.dist file.mmaps
+   usage */
+#undef USE_MMAP
 
-#define HAVE_VPRINTF 0
-#define HAVE_SNPRINTF 0
-#define HAVE_VSNPRINTF 0
+/* Version number of package */
+#undef VERSION
 
-#define HAVE_RECALLOC 0
-#define HAVE_MEMALIGN 0
-#define HAVE_VALLOC 0
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
 
-/* various functions for arg checking and/or internal use */
-
-#define HAVE_ATOI 0
-#define HAVE_ATOL 0
-#define HAVE_BCMP 0
-#define HAVE_BCOPY 0
-#define HAVE_BZERO 0
-#define HAVE_INDEX 0
-#define HAVE_MEMCCPY 0
-#define HAVE_MEMCHR 0
-#define HAVE_MEMCMP 0
-#define HAVE_MEMCPY 0
-#define HAVE_MEMMOVE 0
-#define HAVE_MEMSET 0
-#define HAVE_RINDEX 0
-#define HAVE_STRCASECMP 0
-#define HAVE_STRCAT 0
-#define HAVE_STRCHR 0
-#define HAVE_STRCMP 0
-#define HAVE_STRCPY 0
-#define HAVE_STRCSPN 0
-#define HAVE_STRDUP 0
-#define HAVE_STRLEN 0
-#define HAVE_STRNCASECMP 0
-#define HAVE_STRNCAT 0
-#define HAVE_STRNCMP 0
-#define HAVE_STRNCPY 0
-#define HAVE_STRNDUP 0
-#define HAVE_STRPBRK 0
-#define HAVE_STRRCHR 0
-#define HAVE_STRSEP 0
-#define HAVE_STRSPN 0
-#define HAVE_STRSTR 0
-#define HAVE_STRTOK 0
-
-/* manual settings */
-#include "settings.h"
-
-#endif /* ! __CONF_H__ */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t

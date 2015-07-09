@@ -27,6 +27,7 @@
 #include <stdarg.h>				/* for ... */
 
 #include "conf.h"				/* up here for _INCLUDE */
+#include "settings.h"
 
 /* for time type -- see settings.h */
 #if STORE_TIME
