@@ -21,7 +21,7 @@
 # $Id: configure.ac,v 1.37 2007/05/14 17:23:37 gray Exp $
 #
 AC_REVISION($Revision: 1.37 $)
-AC_INIT(dmalloc, 5.5.2, [http://dmalloc.com/])
+AC_INIT(dmalloc, 6.0.1, [https://github.com/homer242/dmalloc])
 AC_CONFIG_SRCDIR(dmalloc.c)
 AC_CONFIG_HEADER(conf.h)
 
