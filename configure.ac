@@ -292,6 +292,14 @@ AH_TEMPLATE([BASIC_BLOCK],
 AC_CHECK_FUNCS(getpagesize)
 AC_MSG_CHECKING([basic-block size])
 ac_cv_page_size=0
+
+AC_ARG_WITH(pagesize, 
+    [ AC_HELP_STRING([--with-pagesize=nbits], 
+                [log base 2 of machine page size] ) ], 
+    [ case "$withval" in ?|1?) ac_cv_page_size=$withval; esac ], 
+    [ : # default to probing, set above ],
+) 
+
 if test $ac_cv_page_size = 0; then
    AC_RUN_IFELSE([AC_LANG_SOURCE([main() { if (getpagesize()<=2048) exit(0); else exit(1); }])],
 	[ ac_cv_page_size=11 ] )
